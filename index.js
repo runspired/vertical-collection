@@ -5,7 +5,6 @@ const StripClassCallCheckPlugin = require('babel6-plugin-strip-class-callcheck')
 const Funnel = require('broccoli-funnel');
 const Rollup = require('broccoli-rollup');
 const merge   = require('broccoli-merge-trees');
-const VersionChecker = require('ember-cli-version-checker');
 
 const path = require('path');
 
@@ -118,7 +117,6 @@ module.exports = {
 
   included(app) {
     this._super.included.apply(this, arguments);
-    this.checker = new VersionChecker(app);
 
     while (typeof app.import !== 'function' && app.app) {
       app = app.app;
@@ -140,16 +138,13 @@ module.exports = {
   treeForApp() {
     const tree = this._super.treeForApp.apply(this, arguments);
 
-    const exclude = [];
-
     if (isProductionEnv()) {
+      const exclude = [];
       exclude.push('initializers/debug.js');
+      return new Funnel(tree, { exclude });
+    } else {
+      return tree;
     }
 
-    if (this.checker.forEmber().isAbove('1.13.0')) {
-      exclude.push('initializers/vertical-collection-legacy-compat.js');
-    }
-
-    return new Funnel(tree, { exclude });
   }
 };
